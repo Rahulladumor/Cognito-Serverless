@@ -1,0 +1,76 @@
+service: cognito-auth
+
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-1
+  memorySize: 128
+  timeout: 10
+  stage: dev
+  environment:
+    COGNITO_POOL: !Ref CognitoUserPool
+    POOL_ID: ${self:custom.environment.POOL_ID}
+    CLIENT_APP_ID: ${self:custom.environment.CLIENT_APP_ID}
+  
+custom:
+  environment: ${file(./config.json)}
+
+
+functions:
+  register:
+    handler: auth.createCognitoUser
+    events:
+      - http:
+          path: /register
+          method: post
+  login:
+    handler: auth.Login
+    events:
+      - http:
+          path: /login
+          method: post
+  logout:
+    handler: auth.LogOut
+    events:
+      - http:
+          path: /logout
+          method: post
+  getuser:
+    handler: auth.getUser
+    events:
+      - http:
+          path: getuser
+          method: get
+  hello:
+    handler: auth.hello
+    events:
+      - http:
+          path: /hello
+          method: post
+
+
+
+resources:
+  Resources:
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: auth-user-pool
+        UsernameAttributes:
+          - email
+        AutoVerifiedAttributes:
+          - email
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: auth-user-pool-client
+        UserPoolId:
+          Ref: CognitoUserPool
+        GenerateSecret: false
+        ExplicitAuthFlows: 
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_USER_SRP_AUTH
+        PreventUserExistenceErrors: ENABLED
+
