@@ -4,5 +4,8 @@ jspm_packages
 
 # Serverless directories
 .serverless
-test
-config
+
+
+
+test.js
+config.json
